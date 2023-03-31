@@ -1,0 +1,1 @@
+En esta carpeta se deben encontrar tus respuestas de la pregunta 1 sobre Relfexión y Teoría.
