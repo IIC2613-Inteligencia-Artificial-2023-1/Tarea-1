@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect the Dots Visualizer</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        input {
+            margin: 30px 10px 30px;
+        }
+
+        .grid {
+            display: inline-grid;
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid black;
+            text-align: center;
+            line-height: 40px;
+        }
+        .start {
+            font-weight: bold;
+        }
+        .end {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        
+        .how-to {
+            font-size: 16px;
+            font-weight: 800;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="how-to">Para usar el visualizador, debes subir el archivo .json retornado por el programa
+        parser_clingo.py según las instrucciones del pdf
+    </div> 
+    <input type="file" id="jsonInput" accept=".json" />
+    <div id="grid"></div>
+    <script>
+        document.getElementById('jsonInput').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const data = await readJSON(file);
+            drawGrid(data);
+        });
+
+        async function readJSON(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        const json = JSON.parse(event.target.result);
+                        resolve(json);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsText(file);
+            });
+        }
+
+        function createGrid(gridSize) {
+            const grid = document.createElement('div');
+            grid.classList.add('grid');
+            grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            grid.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+            return grid;
+        }
+
+        function createCell(color, isStart, isEnd) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.style.backgroundColor = color;
+            if (isStart) {
+                cell.classList.add('start');
+                cell.textContent = 'S';
+            } else if (isEnd) {
+                cell.classList.add('end');
+                cell.textContent = 'E';
+            }
+            return cell;
+        }
+
+        function drawGrid(data) {
+            const gridSize = data.gridSize;
+            const grid = createGrid(gridSize);
+            const cells = new Array(gridSize * gridSize).fill(null).map(() => createCell(null, false, false));
+
+            for (const [x, y, color, n] of data.lines) {
+                const index = x + y * gridSize;
+                const cell = cells[index];
+                cell.style.backgroundColor = color;
+                if (n === 1) {
+                    cell.classList.add('start');
+                    cell.textContent = 'S';
+                } else if (n === 2) {
+                    cell.classList.add('end');
+                    cell.textContent = 'E';
+                }
+            }
+
+            cells.forEach(cell => grid.appendChild(cell));
+            document.getElementById('grid').innerHTML = '';
+            document.getElementById('grid').appendChild(grid);
+        }
+    </script>
+</body>
+</html>
